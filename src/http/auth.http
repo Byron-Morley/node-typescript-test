@@ -1,0 +1,29 @@
+@host = http://localhost:3000
+
+
+
+#PING TEST
+GET {{host}}/
+Content-Type: application/json
+
+###
+
+#HEALTH CHECK
+GET {{host}}/health
+Content-Type: application/json
+
+
+###
+
+#LOGIN USER
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "fullname": "{{fullname}}",
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "userType": "{{userType}}"
+}
+
+###
