@@ -16,7 +16,7 @@ Content-Type: application/json
 ###
 
 #LOGIN USER
-POST {{host}}/auth/registration
+POST {{host}}/api/auth/registration
 Content-Type: application/json
 
 {
@@ -28,3 +28,8 @@ Content-Type: application/json
 }
 
 ###
+
+
+#GET USER
+GET {{host}}/api/user/1
+Content-Type: application/json
