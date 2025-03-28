@@ -16,13 +16,14 @@ Content-Type: application/json
 ###
 
 #LOGIN USER
-POST {{host}}/auth/login
+POST {{host}}/auth/registration
 Content-Type: application/json
 
 {
   "fullname": "{{fullname}}",
   "email": "{{email}}",
   "password": "{{password}}",
+  "password2": "{{password}}",
   "userType": "{{userType}}"
 }
 

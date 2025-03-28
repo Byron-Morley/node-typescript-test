@@ -1,5 +1,6 @@
 import express, { Express, Request, Response } from 'express';
 import { isDatabaseConnected } from './db/database';
+import authRoutes from './routes/auth';
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
@@ -27,6 +28,9 @@ app.get('/health', (req: Request, res: Response) => {
     });
   }
 });
+
+// routes
+app.use('/api', authRoutes);
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
