@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { User } from '../models/User';
 import { createUser, findUserByEmail } from '../repositories/userRepository';
 
+
 export const createNewUser = async (req: Request, res: Response) => {
   const errors:Result<ValidationError> = validationResult(req);
   if (!errors.isEmpty()) {

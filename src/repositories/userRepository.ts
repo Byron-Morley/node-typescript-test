@@ -2,6 +2,11 @@ import { v4 as uuidv4 } from 'uuid';
 import db from '../db/database';
 import { User } from '../models/User';
 
+/**
+ * Searches the user table for user that matches email
+ * @param email - email query string
+ * @returns User or undefined
+ */
 export const findUserByEmail = (email:string): User | undefined => {
   try {
     const query = db.prepare('SELECT * FROM users WHERE email = ?');
@@ -12,6 +17,11 @@ export const findUserByEmail = (email:string): User | undefined => {
   }
 };
 
+/**
+ * Searches the user table for user that matches id
+ * @param id - id query string
+ * @returns User or undefined
+ */
 export const findUserById = (id:string):User | undefined => {
   try {
     const query = db.prepare('SELECT * FROM users WHERE id = ?');
@@ -22,6 +32,11 @@ export const findUserById = (id:string):User | undefined => {
   }
 };
 
+/**
+ * Creates a new record in the user table
+ * @param User - fullName, email, password (hashed) , userType
+ * @returns User or throws an error
+ */
 export const createUser = (userData:Omit<User, 'id' | 'createdDate'>): User => {
   try {
     const id:string = uuidv4();
