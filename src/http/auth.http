@@ -30,5 +30,5 @@ Content-Type: application/json
 
 
 #GET USER
-GET {{host}}/api/user/1
+GET {{host}}/api/users/e2fccfd2-e4db-40f9-90a4-f07ee55670ab
 Content-Type: application/json

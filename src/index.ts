@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from 'express';
 import { isDatabaseConnected } from './db/database';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
+import { specs, swaggerUi } from './config/swagger';
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
@@ -30,9 +31,12 @@ app.get('/health', (req: Request, res: Response) => {
   }
 });
 
+// Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
 // routes
 app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
+app.use('/api/users', userRoutes);
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
