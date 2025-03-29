@@ -1,57 +1,45 @@
-import { v4 as uuidv4 } from 'uuid';
-import db from '../db/database';
+import { Result, ValidationError, validationResult } from 'express-validator';
+import bcrypt from 'bcrypt';
+import { Request, Response } from 'express';
 import { User } from '../models/User';
+import { createUser, findUserByEmail } from '../repositories/userRepository';
 
-export const findUserByEmail = (email:string): User | undefined => {
-  try {
-    const query = db.prepare('SELECT * FROM users WHERE email = ?');
-    return query.get(email) as User | undefined;
-  } catch (error) {
-    console.error('Error finding user by email', error);
-    throw error;
+export const createNewUser = async (req: Request, res: Response) => {
+  const errors:Result<ValidationError> = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
-};
 
-export const findUserById = (id:string):User | undefined => {
   try {
-    const query = db.prepare('SELECT * FROM users WHERE id = ?');
-    return query.get(id) as User | undefined;
-  } catch (error) {
-    console.error('Error finding user by id', error);
-    throw error;
-  }
-};
-
-export const createUser = (userData:Omit<User, 'id' | 'createdDate'>): User => {
-  try {
-    const id:string = uuidv4();
-    const createdDate:string = new Date().toISOString();
-
-    const query = db.prepare('INSERT INTO users (id, fullName, email, password, userType, createdDate) VALUES (?,?,?,?,?,?)');
-
     const {
       fullName, email, password, userType,
-    } = userData;
+    } = req.body;
 
-    query.run(
-      id,
+    // does the user already exist
+    const existingUser :User | undefined = findUserByEmail(email);
+    if (existingUser) {
+      res.status(409).json({ error: 'User already exists' });
+    }
+
+    // hash the password
+    const saltRounds = 10;
+    const hashedPassword:string = await bcrypt.hash(password, saltRounds);
+
+    const newUser: User = createUser({
       fullName,
       email,
-      password,
       userType,
-      createdDate,
-    );
+      password: hashedPassword,
+    });
 
-    return {
-      id,
-      fullName,
-      email,
-      password,
-      userType,
-      createdDate,
-    };
-  } catch (error) {
-    console.error('Error creating user:', error);
-    throw error;
+    // remove the password from the return object
+    const { password: _, ...userWithoutPasword } = newUser;
+    return res.status(201).json(userWithoutPasword);
+  } catch (err) {
+    return res.status(500).json({ error: 'Internal server error' });
   }
+};
+
+export const getUserById = (req: Request, res: Response): void => {
+  // TODO implement later
 };

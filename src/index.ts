@@ -1,7 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import { isDatabaseConnected } from './db/database';
-import authRoutes from './routes/auth';
-import userRoutes from './routes/user';
+import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/userRoutes';
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
