@@ -20,10 +20,9 @@ POST {{host}}/api/auth/registration
 Content-Type: application/json
 
 {
-  "fullname": "{{fullname}}",
+  "fullName": "{{fullname}}",
   "email": "{{email}}",
   "password": "{{password}}",
-  "password2": "{{password}}",
   "userType": "{{userType}}"
 }
 
