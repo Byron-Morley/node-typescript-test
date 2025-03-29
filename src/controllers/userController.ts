@@ -29,7 +29,7 @@ export const createNewUser = async (req: Request, res: Response) => {
     // does the user already exist
     const existingUser :User | undefined = findUserByEmail(email);
     if (existingUser) {
-      res.status(409).json({ error: 'User already exists' });
+      return res.status(409).json({ error: 'User already exists' });
     }
 
     // hash the password
