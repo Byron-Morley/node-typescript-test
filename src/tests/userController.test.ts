@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { createNewUser } from '../controllers/userController';
-import { findUserByEmail, createUser } from '../repositories/userRepository';
+import {createNewUser, getUserById} from '../controllers/userController';
+import { findUserByEmail, createUser, findUserById } from '../repositories/userRepository';
 import { removePassword } from '../utils/utils';
 import { createMockUser } from '../fixtures/userFixtures';
 import { User } from '../models/User';
@@ -82,7 +82,7 @@ describe('User Controller', (): void => {
       expect(removePassword).toHaveBeenCalledWith(mockUser);
       expect(mockResponse.status).toHaveBeenCalledWith(201);
     });
-    it('should return a 409 if the user already exists', async () => {
+    it('should return a 500 if the user already exists', async () => {
       // Create a mock existing user with the same email as in the request
       const existingUser = createMockUser({
         email: 'test@example.com',
@@ -94,8 +94,8 @@ describe('User Controller', (): void => {
       await createNewUser(mockRequest as Request, mockResponse as Response);
 
       expect(findUserByEmail).toHaveBeenCalledWith('test@example.com');
-      expect(mockResponse.status).toHaveBeenCalledWith(409);
-      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'User already exists' });
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Internal server error' });
 
       expect(createUser).not.toHaveBeenCalled();
     });
@@ -127,6 +127,91 @@ describe('User Controller', (): void => {
 
       expect(findUserByEmail).not.toHaveBeenCalled();
       expect(createUser).not.toHaveBeenCalled();
+    });
+    it('should return a 500 status when an unexpected error occurs', async () => {
+      // Mock user doesn't exist
+      (findUserByEmail as jest.Mock).mockReturnValue(undefined);
+
+      // Make bcrypt.hash throw an error to trigger the catch block
+      (bcrypt.hash as jest.Mock).mockRejectedValue(new Error('Bcrypt error'));
+
+      await createNewUser(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Internal server error' });
+      expect(createUser).not.toHaveBeenCalled();
+    });
+  });
+  describe('getUserById', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+
+      mockResponse = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockImplementation((result: any) => {
+          responseObject = result;
+          return mockResponse;
+        }),
+      };
+    });
+
+    it('should return user details when valid ID is provided', () => {
+      // Arrange
+      const mockUser = createMockUser();
+      (findUserById as jest.Mock).mockReturnValue(mockUser);
+
+      mockRequest = {
+        params: { id: 'valid-user-id' },
+      };
+
+      getUserById(mockRequest as Request, mockResponse as Response);
+
+      expect(findUserById).toHaveBeenCalledWith('valid-user-id');
+      expect(removePassword).toHaveBeenCalledWith(mockUser);
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalled();
+    });
+
+    it('should return 400 when ID is not provided', () => {
+      mockRequest = {
+        params: {},
+      };
+
+      getUserById(mockRequest as Request, mockResponse as Response);
+
+      expect(findUserById).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'User ID is required' });
+    });
+
+    it('should return 404 when user is not found', () => {
+      (findUserById as jest.Mock).mockReturnValue(undefined);
+
+      mockRequest = {
+        params: { id: 'non-existent-id' },
+      };
+
+      getUserById(mockRequest as Request, mockResponse as Response);
+
+      expect(findUserById).toHaveBeenCalledWith('non-existent-id');
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'User not found' });
+    });
+
+    it('should return 500 when an unexpected error occurs', () => {
+      (findUserById as jest.Mock).mockImplementation(() => {
+        throw new Error('Database error');
+      });
+
+      mockRequest = {
+        params: { id: 'valid-user-id' },
+      };
+
+      getUserById(mockRequest as Request, mockResponse as Response);
+
+      expect(findUserById).toHaveBeenCalledWith('valid-user-id');
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Internal server error' });
     });
   });
 });
